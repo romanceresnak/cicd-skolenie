@@ -6,7 +6,7 @@ on:
       - main
   workflow_dispatch:  # Umožní manuálne spustenie workflow
 
-# Rozdelenie workflow na sekvenčné joby
+# Jednoduchší workflow bez použitia artefaktov
 jobs:
   validate:
     name: 'Validácia'
@@ -58,14 +58,8 @@ jobs:
       run: terraform init
 
     - name: Terraform Plan
-      run: terraform plan -out=tfplan
-
-    - name: Upload Terraform Plan
-      uses: actions/upload-artifact@v2
-      with:
-        name: terraform-plan
-        path: ./terraform/tfplan
-        retention-days: 1
+      run: terraform plan
+      # Odstránené ukladanie plánu ako artefaktu
 
   apply:
     name: 'Nasadenie'
@@ -93,14 +87,9 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    - name: Download Terraform Plan
-      uses: actions/download-artifact@v2
-      with:
-        name: terraform-plan
-        path: ./terraform
-
     - name: Terraform Apply
-      run: terraform apply -auto-approve tfplan
+      run: terraform apply -auto-approve
+      # Použitie priameho apply bez použitia plánu z predchádzajúceho kroku
       
     - name: Notify Slack about deployment status
       # Tu môžete pridať krok pre notifikáciu do Slacku alebo iného systému
