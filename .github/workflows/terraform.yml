@@ -6,7 +6,6 @@ on:
       - main
   workflow_dispatch:  # Umožní manuálne spustenie workflow
 
-# Jednoduchší workflow bez použitia artefaktov
 jobs:
   validate:
     name: 'Validácia'
@@ -69,7 +68,7 @@ jobs:
     defaults:
       run:
         working-directory: ./terraform
-    environment: production  # Voliteľný krok pre schválenie nasadenia
+    environment: production  
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
@@ -89,8 +88,6 @@ jobs:
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
-      # Použitie priameho apply bez použitia plánu z predchádzajúceho kroku
       
     - name: Notify Slack about deployment status
-      # Tu môžete pridať krok pre notifikáciu do Slacku alebo iného systému
       run: echo "Infraštruktúra bola úspešne nasadená"
