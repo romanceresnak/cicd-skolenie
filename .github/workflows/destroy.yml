@@ -4,14 +4,50 @@ on:
   workflow_dispatch:  # Len manuálne spustenie
 
 jobs:
-  terraform:
-    name: 'Terraform Destroy'
+  plan_destroy:
+    name: 'Plánovanie odstránenia'
     runs-on: ubuntu-latest
-    
     defaults:
       run:
         working-directory: ./terraform
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Plan Destroy
+      run: terraform plan -destroy
+      # Len zobrazenie plánu odstránenia, bez ukladania
+
+  confirm_destroy:
+    name: 'Potvrdenie odstránenia'
+    needs: plan_destroy
+    runs-on: ubuntu-latest
+    environment: production  # Nastavenie environment pre schvaľovací proces
+    steps:
+    - name: Confirm Destruction
+      run: echo "Odstránenie infraštruktúry bolo schválené"
+      # Tento krok slúži len ako kontrolný bod na schválenie
+      
+  execute_destroy:
+    name: 'Vykonanie odstránenia'
+    needs: confirm_destroy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
@@ -31,3 +67,7 @@ jobs:
 
     - name: Terraform Destroy
       run: terraform destroy -auto-approve
+      # Priame odstránenie bez použitia plánu z predchádzajúceho kroku
+      
+    - name: Notify About Destruction
+      run: echo "Infraštruktúra bola úspešne odstránená"
